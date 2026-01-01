@@ -1,0 +1,67 @@
+The elevation gain calculation is incorrectly reporting low numbers because the current algorithm resets the 'base' of the hill too early on long climbs.
+
+Please rewrite the calculate_accurate_gain function in app/router.py to use a Peak/Valley State Machine.
+
+Replace the existing function with exactly this code:
+
+Python
+
+def calculate_accurate_gain(elevations):
+    """
+    Calculate elevation gain using a State Machine approach.
+    It tracks 'seeking_peak' vs 'seeking_valley' states to capture 
+    major climbs while ignoring noise (Threshold = 5m).
+    """
+    if not elevations: 
+        return 0.0
+    
+    # 1. Smooth the data (Window size = 3) to remove distinct spikes
+    smoothed = []
+    if len(elevations) < 3:
+        smoothed = elevations
+    else:
+        smoothed = [elevations[0]]
+        for i in range(1, len(elevations) - 1):
+            avg = (elevations[i-1] + elevations[i] + elevations[i+1]) / 3.0
+            smoothed.append(avg)
+        smoothed.append(elevations[-1])
+# 2. State Machine Logic
+THRESHOLD = 5.0
+total_gain = 0.0
+Initialize state
+valley = smoothed[0] peak = smoothed[0] state = 'seeking_peak'
+
+for h in smoothed:
+    if state == 'seeking_peak':
+        # We are going up. Track the highest point seen so far.
+        if h > peak:
+            peak = h
+        
+        # Did we drop enough to confirm the peak is over?
+        if h < peak - THRESHOLD:
+            # Yes, lock in the gain from the previous valley to that peak
+            total_gain += (peak - valley)
+            
+            # Reset: We are now going down
+            valley = h
+            state = 'seeking_valley'
+            
+    elif state == 'seeking_valley':
+        # We are going down. Track the lowest point seen so far.
+        if h < valley:
+            valley = h
+            
+        # Did we rise enough to confirm the valley is over?
+        if h > valley + THRESHOLD:
+            # Yes, we are climbing again. 
+            # (No gain to add yet, we just started the next hill)
+            peak = h
+            state = 'seeking_peak'
+            
+# Edge Case: If we ended the route while still climbing, add that last partial gain
+if state == 'seeking_peak':
+    total_gain += (peak - valley)
+    
+return round(total_gain, 1)
+
+This logic ensures that if I climb 100m, flatten out, and climb another 50m, it counts the full 150m correctly.

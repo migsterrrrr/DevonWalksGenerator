@@ -54,40 +54,49 @@ def to_gpx(route_data):
     return '\n'.join(gpx_lines)
 
 def calculate_accurate_gain(elevations):
-    """Calculate elevation gain using smoothing and hysteresis thresholding.
-    
-    Similar to algorithms used by Strava/Garmin to filter GPS noise.
     """
-    if len(elevations) < 3:
+    Calculate elevation gain using a State Machine approach.
+    It tracks 'seeking_peak' vs 'seeking_valley' states to capture 
+    major climbs while ignoring noise (Threshold = 5m).
+    """
+    if not elevations: 
         return 0.0
     
+    smoothed = []
+    if len(elevations) < 3:
+        smoothed = elevations
+    else:
+        smoothed = [elevations[0]]
+        for i in range(1, len(elevations) - 1):
+            avg = (elevations[i-1] + elevations[i] + elevations[i+1]) / 3.0
+            smoothed.append(avg)
+        smoothed.append(elevations[-1])
+    
     THRESHOLD = 5.0
-    
-    smoothed = [elevations[0]]
-    for i in range(1, len(elevations) - 1):
-        avg = (elevations[i-1] + elevations[i] + elevations[i+1]) / 3.0
-        smoothed.append(avg)
-    smoothed.append(elevations[-1])
-    
     total_gain = 0.0
-    current_low = smoothed[0]
-    current_high = smoothed[0]
+    valley = smoothed[0]
+    peak = smoothed[0]
+    state = 'seeking_peak'
     
-    for point in smoothed[1:]:
-        if point > current_high:
-            current_high = point
-        elif point < current_low:
-            climb = current_high - current_low
-            if climb > THRESHOLD:
-                total_gain += climb
-            current_low = point
-            current_high = point
+    for h in smoothed:
+        if state == 'seeking_peak':
+            if h > peak:
+                peak = h
+            if h < peak - THRESHOLD:
+                total_gain += (peak - valley)
+                valley = h
+                state = 'seeking_valley'
+        elif state == 'seeking_valley':
+            if h < valley:
+                valley = h
+            if h > valley + THRESHOLD:
+                peak = h
+                state = 'seeking_peak'
     
-    final_climb = current_high - current_low
-    if final_climb > THRESHOLD:
-        total_gain += final_climb
+    if state == 'seeking_peak':
+        total_gain += (peak - valley)
     
-    return total_gain
+    return round(total_gain, 1)
 
 
 def lat_lon_to_mercator(lat, lon):
