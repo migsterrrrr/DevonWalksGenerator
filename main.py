@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict
 from contextlib import asynccontextmanager
 
 from app.router import RoutePlanner
@@ -41,6 +41,7 @@ class RouteResponse(BaseModel):
     total_time_s: float = 0
     num_nodes: int = 0
     error: str = ""
+    breakdown: Dict[str, float] = {}
 
 
 @app.get("/health")
@@ -68,7 +69,8 @@ async def calculate_route(request: RouteRequest):
         elevation_gain=result.get("elevation_gain", 0),
         total_time_s=result.get("total_time_s", 0),
         num_nodes=result.get("num_nodes", 0),
-        error=result.get("error", "")
+        error=result.get("error", ""),
+        breakdown=result.get("breakdown", {})
     )
 
 

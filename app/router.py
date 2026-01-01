@@ -48,6 +48,7 @@ class RoutePlanner:
             total_dist = 0
             total_gain = 0
             total_time_s = 0
+            road_stats = {}
             
             for i, node in enumerate(path_nodes):
                 data = self.graph.nodes[node]
@@ -57,8 +58,13 @@ class RoutePlanner:
                 if i > 0:
                     prev = path_nodes[i-1]
                     edge = self.graph[prev][node]
-                    total_dist += edge.get('length', 0)
+                    length = edge.get('length', 0)
+                    total_dist += length
                     total_time_s += edge.get('weight', 0)
+                    
+                    road_type = edge.get('highway', 'unknown')
+                    road_stats[road_type] = road_stats.get(road_type, 0) + length
+                    
                     ele_curr = data.get('elevation', 0)
                     ele_prev = self.graph.nodes[prev].get('elevation', 0)
                     if ele_curr > ele_prev:
@@ -70,7 +76,8 @@ class RoutePlanner:
                 "distance_m": round(total_dist, 1),
                 "elevation_gain": round(total_gain, 1),
                 "total_time_s": round(total_time_s, 1),
-                "num_nodes": len(path_nodes)
+                "num_nodes": len(path_nodes),
+                "breakdown": road_stats
             }
         except nx.NetworkXNoPath:
             return {"success": False, "error": "No path found"}

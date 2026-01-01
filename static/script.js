@@ -1,5 +1,33 @@
 const map = L.map('map').setView([50.7, -3.5], 10);
 
+const roadTypeLabels = {
+    'primary': 'Busy Road (Avoid!)',
+    'trunk': 'Busy Road (Avoid!)',
+    'secondary': 'Main Road',
+    'tertiary': 'Country Lane',
+    'unclassified': 'Country Lane',
+    'residential': 'Street',
+    'service': 'Street',
+    'living_street': 'Street',
+    'footway': 'Off-Road Path',
+    'path': 'Off-Road Path',
+    'bridleway': 'Off-Road Path',
+    'track': 'Off-Road Path',
+    'cycleway': 'Off-Road Path',
+    'steps': 'Off-Road Path',
+    'pedestrian': 'Off-Road Path',
+    'unknown': 'Unknown'
+};
+
+const roadTypeColors = {
+    'Busy Road (Avoid!)': '#ef4444',
+    'Main Road': '#f97316',
+    'Country Lane': '#eab308',
+    'Street': '#a3e635',
+    'Off-Road Path': '#22c55e',
+    'Unknown': '#6b7280'
+};
+
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
@@ -13,6 +41,38 @@ const startInput = document.getElementById('start-input');
 const endInput = document.getElementById('end-input');
 const calculateBtn = document.getElementById('calculate-btn');
 const statusArea = document.getElementById('status-area');
+const breakdownContainer = document.getElementById('breakdown-container');
+
+function renderBreakdown(breakdown, totalDistance) {
+    breakdownContainer.innerHTML = '';
+    
+    if (!breakdown || Object.keys(breakdown).length === 0) return;
+    
+    const aggregated = {};
+    for (const [osmType, distance] of Object.entries(breakdown)) {
+        const label = roadTypeLabels[osmType] || 'Unknown';
+        aggregated[label] = (aggregated[label] || 0) + distance;
+    }
+    
+    const sorted = Object.entries(aggregated).sort((a, b) => b[1] - a[1]);
+    
+    for (const [label, distance] of sorted) {
+        const percentage = (distance / totalDistance) * 100;
+        const distanceKm = (distance / 1000).toFixed(1);
+        const color = roadTypeColors[label] || '#6b7280';
+        
+        const item = document.createElement('div');
+        item.className = 'breakdown-item';
+        item.innerHTML = `
+            <div class="breakdown-label">
+                <span>${label}</span>
+                <span>${distanceKm} km</span>
+            </div>
+            <div class="breakdown-bar" style="width: ${percentage}%; background: ${color};"></div>
+        `;
+        breakdownContainer.appendChild(item);
+    }
+}
 
 const greenIcon = L.icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
@@ -134,7 +194,10 @@ calculateBtn.addEventListener('click', async function() {
             const minutes = totalMinutes % 60;
             const timeStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes} min`;
             
+            statusArea.innerHTML = '';
             setStatus(`Route found! Distance: ${distanceKm} km | Elevation: +${elevationGain} m | Est. time: ${timeStr}`, 'success');
+            
+            renderBreakdown(data.breakdown, data.distance_m);
         } else {
             setStatus(`Error: ${data.error}`, 'error');
         }

@@ -146,6 +146,28 @@
             flex: 1;
             height: 100%;
         }
+        
+        #breakdown-container {
+            margin-top: 16px;
+        }
+        
+        .breakdown-item {
+            margin-bottom: 10px;
+        }
+        
+        .breakdown-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #d1d5db;
+            margin-bottom: 4px;
+        }
+        
+        .breakdown-bar {
+            height: 8px;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
@@ -176,6 +198,8 @@
         </div>
         
         <button id="calculate-btn" disabled>Calculate Route</button>
+        
+        <div id="breakdown-container" class="mt-4"></div>
         
         <div id="status-area" class="info">
             Click on the map to place your starting point (green marker).
