@@ -89,8 +89,10 @@ shareBtn.addEventListener('mouseout', () => {
 shareBtn.addEventListener('click', () => {
     qrModal.style.display = 'flex';
     qrCodeContainer.innerHTML = '';
+    const shareUrl = new URL(window.location.href);
+    shareUrl.searchParams.set('download', 'true');
     qrCodeInstance = new QRCode(qrCodeContainer, {
-        text: window.location.href,
+        text: shareUrl.toString(),
         width: 200,
         height: 200,
         colorDark: '#000000',
@@ -447,7 +449,16 @@ calculateBtn.addEventListener('click', async function() {
             const url = new URL(window.location.href);
             url.searchParams.set('start', `${startCoords.lat.toFixed(5)},${startCoords.lng.toFixed(5)}`);
             url.searchParams.set('end', `${endCoords.lat.toFixed(5)},${endCoords.lng.toFixed(5)}`);
+            
+            const shouldDownload = url.searchParams.get('download') === 'true';
+            url.searchParams.delete('download');
             window.history.replaceState({}, '', url.toString());
+            
+            if (shouldDownload) {
+                setTimeout(() => {
+                    gpxBtn.click();
+                }, 500);
+            }
         } else {
             setStatus(`Error: ${data.error}`, 'error');
         }
