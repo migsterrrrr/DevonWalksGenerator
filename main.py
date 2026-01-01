@@ -1,11 +1,12 @@
 import os
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Dict, Any
 from contextlib import asynccontextmanager
 
-from app.router import RoutePlanner
+from app.router import RoutePlanner, to_gpx
 
 router_engine = None
 
@@ -75,6 +76,33 @@ async def calculate_route(request: RouteRequest):
         breakdown=result.get("breakdown", {}),
         segments=result.get("segments", []),
         elevation_profile=result.get("elevation_profile", [])
+    )
+
+
+@app.post("/download_gpx")
+async def download_gpx(request: RouteRequest):
+    if router_engine is None:
+        raise HTTPException(status_code=503, detail="Route planner not initialized")
+    
+    if len(request.start) != 2 or len(request.end) != 2:
+        raise HTTPException(status_code=400, detail="Start and end must be [lat, lon] arrays")
+    
+    start_lat, start_lon = request.start
+    end_lat, end_lon = request.end
+    
+    result = router_engine.find_route(start_lat, start_lon, end_lat, end_lon)
+    
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Route calculation failed"))
+    
+    gpx_content = to_gpx(result)
+    if not gpx_content:
+        raise HTTPException(status_code=500, detail="Failed to generate GPX")
+    
+    return Response(
+        content=gpx_content,
+        media_type="application/gpx+xml",
+        headers={"Content-Disposition": "attachment; filename=route.gpx"}
     )
 
 

@@ -59,8 +59,18 @@ let elevationChart = null;
 const startInput = document.getElementById('start-input');
 const endInput = document.getElementById('end-input');
 const calculateBtn = document.getElementById('calculate-btn');
+const gpxBtn = document.getElementById('gpx-btn');
 const statusArea = document.getElementById('status-area');
 const breakdownContainer = document.getElementById('breakdown-container');
+
+gpxBtn.addEventListener('mouseover', () => {
+    gpxBtn.style.borderColor = '#9ca3af';
+    gpxBtn.style.color = '#e5e7eb';
+});
+gpxBtn.addEventListener('mouseout', () => {
+    gpxBtn.style.borderColor = '#4b5563';
+    gpxBtn.style.color = '#9ca3af';
+});
 
 function renderBreakdown(breakdown, totalDistance) {
     breakdownContainer.innerHTML = '';
@@ -235,6 +245,7 @@ function clearMap() {
     startInput.value = '';
     endInput.value = '';
     calculateBtn.disabled = true;
+    gpxBtn.style.display = 'none';
     clickState = 0;
     setStatus('Click on the map to place your starting point (green marker).', 'info');
 }
@@ -265,6 +276,53 @@ map.on('click', function(e) {
     }
 });
 
+gpxBtn.addEventListener('click', async function() {
+    if (!startMarker || !endMarker) {
+        setStatus('Please calculate a route first.', 'error');
+        return;
+    }
+    
+    const startCoords = startMarker.getLatLng();
+    const endCoords = endMarker.getLatLng();
+    
+    gpxBtn.textContent = 'Generating...';
+    gpxBtn.disabled = true;
+    
+    try {
+        const response = await fetch('/download_gpx', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                start: [startCoords.lat, startCoords.lng],
+                end: [endCoords.lat, endCoords.lng]
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to generate GPX');
+        }
+        
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'route.gpx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        setStatus('GPX file downloaded! Import it into OS Maps or AllTrails.', 'success');
+    } catch (error) {
+        setStatus(`GPX download failed: ${error.message}`, 'error');
+    } finally {
+        gpxBtn.textContent = 'Download GPX (for OS Maps)';
+        gpxBtn.disabled = false;
+    }
+});
+
 calculateBtn.addEventListener('click', async function() {
     if (!startMarker || !endMarker) {
         setStatus('Please set both start and end points first.', 'error');
@@ -282,6 +340,8 @@ calculateBtn.addEventListener('click', async function() {
         map.removeLayer(routeLayer);
         routeLayer = null;
     }
+    
+    gpxBtn.style.display = 'none';
     
     try {
         const response = await fetch('/api/route', {
@@ -337,6 +397,8 @@ calculateBtn.addEventListener('click', async function() {
             
             renderBreakdown(data.breakdown, data.distance_m);
             renderElevationChart(data.elevation_profile);
+            
+            gpxBtn.style.display = 'block';
         } else {
             setStatus(`Error: ${data.error}`, 'error');
         }

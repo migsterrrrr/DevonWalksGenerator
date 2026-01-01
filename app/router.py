@@ -3,6 +3,56 @@ import networkx as nx
 from scipy.spatial import cKDTree
 from app.graph_builder import load_graph
 
+
+def to_gpx(route_data):
+    """Convert route data to GPX XML format."""
+    if not route_data.get("success") or not route_data.get("segments"):
+        return None
+    
+    coords_with_elevation = []
+    for segment in route_data["segments"]:
+        for coord in segment["coords"]:
+            coords_with_elevation.append(coord)
+    
+    seen = set()
+    unique_coords = []
+    for coord in coords_with_elevation:
+        key = (coord[0], coord[1])
+        if key not in seen:
+            seen.add(key)
+            unique_coords.append(coord)
+    
+    elevation_map = {}
+    if route_data.get("elevation_profile"):
+        path = route_data.get("path", [])
+        profile = route_data["elevation_profile"]
+        for i, pt in enumerate(path):
+            if i < len(profile):
+                elevation_map[(round(pt[0], 6), round(pt[1], 6))] = profile[i]["elevation_m"]
+    
+    gpx_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<gpx version="1.1" creator="DevonWalker" xmlns="http://www.topografix.com/GPX/1/1">',
+        '  <trk>',
+        '    <name>Devon Walking Route</name>',
+        '    <trkseg>'
+    ]
+    
+    for coord in unique_coords:
+        lat, lon = coord[0], coord[1]
+        ele = elevation_map.get((round(lat, 6), round(lon, 6)), 0)
+        gpx_lines.append(f'      <trkpt lat="{lat}" lon="{lon}">')
+        gpx_lines.append(f'        <ele>{ele}</ele>')
+        gpx_lines.append('      </trkpt>')
+    
+    gpx_lines.extend([
+        '    </trkseg>',
+        '  </trk>',
+        '</gpx>'
+    ])
+    
+    return '\n'.join(gpx_lines)
+
 def lat_lon_to_mercator(lat, lon):
     x = lon * 20037508.34 / 180.0
     y = math.log(math.tan((90 + lat) * math.pi / 360.0)) / (math.pi / 180.0)
