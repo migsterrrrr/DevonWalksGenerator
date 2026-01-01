@@ -60,8 +60,13 @@ const startInput = document.getElementById('start-input');
 const endInput = document.getElementById('end-input');
 const calculateBtn = document.getElementById('calculate-btn');
 const gpxBtn = document.getElementById('gpx-btn');
+const shareBtn = document.getElementById('share-btn');
 const statusArea = document.getElementById('status-area');
 const breakdownContainer = document.getElementById('breakdown-container');
+const qrModal = document.getElementById('qr-modal');
+const qrCodeContainer = document.getElementById('qr-code');
+const closeModalBtn = document.getElementById('close-modal-btn');
+let qrCodeInstance = null;
 
 gpxBtn.addEventListener('mouseover', () => {
     gpxBtn.style.borderColor = '#9ca3af';
@@ -70,6 +75,37 @@ gpxBtn.addEventListener('mouseover', () => {
 gpxBtn.addEventListener('mouseout', () => {
     gpxBtn.style.borderColor = '#4b5563';
     gpxBtn.style.color = '#9ca3af';
+});
+
+shareBtn.addEventListener('mouseover', () => {
+    shareBtn.style.borderColor = '#9ca3af';
+    shareBtn.style.color = '#e5e7eb';
+});
+shareBtn.addEventListener('mouseout', () => {
+    shareBtn.style.borderColor = '#4b5563';
+    shareBtn.style.color = '#9ca3af';
+});
+
+shareBtn.addEventListener('click', () => {
+    qrModal.style.display = 'flex';
+    qrCodeContainer.innerHTML = '';
+    qrCodeInstance = new QRCode(qrCodeContainer, {
+        text: window.location.href,
+        width: 200,
+        height: 200,
+        colorDark: '#000000',
+        colorLight: '#ffffff'
+    });
+});
+
+closeModalBtn.addEventListener('click', () => {
+    qrModal.style.display = 'none';
+});
+
+qrModal.addEventListener('click', (e) => {
+    if (e.target === qrModal) {
+        qrModal.style.display = 'none';
+    }
 });
 
 function renderBreakdown(breakdown, totalDistance) {
@@ -246,8 +282,14 @@ function clearMap() {
     endInput.value = '';
     calculateBtn.disabled = true;
     gpxBtn.style.display = 'none';
+    shareBtn.style.display = 'none';
     clickState = 0;
     setStatus('Click on the map to place your starting point (green marker).', 'info');
+    
+    const url = new URL(window.location.href);
+    url.searchParams.delete('start');
+    url.searchParams.delete('end');
+    window.history.replaceState({}, '', url.pathname);
 }
 
 function formatCoord(lat, lon) {
@@ -342,6 +384,7 @@ calculateBtn.addEventListener('click', async function() {
     }
     
     gpxBtn.style.display = 'none';
+    shareBtn.style.display = 'none';
     
     try {
         const response = await fetch('/api/route', {
@@ -399,6 +442,12 @@ calculateBtn.addEventListener('click', async function() {
             renderElevationChart(data.elevation_profile);
             
             gpxBtn.style.display = 'block';
+            shareBtn.style.display = 'block';
+            
+            const url = new URL(window.location.href);
+            url.searchParams.set('start', `${startCoords.lat.toFixed(5)},${startCoords.lng.toFixed(5)}`);
+            url.searchParams.set('end', `${endCoords.lat.toFixed(5)},${endCoords.lng.toFixed(5)}`);
+            window.history.replaceState({}, '', url.toString());
         } else {
             setStatus(`Error: ${data.error}`, 'error');
         }
@@ -449,5 +498,33 @@ window.addEventListener('mouseup', () => {
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
         map.invalidateSize();
+    }
+});
+
+window.addEventListener('load', () => {
+    const params = new URLSearchParams(window.location.search);
+    const startParam = params.get('start');
+    const endParam = params.get('end');
+    
+    if (startParam && endParam) {
+        const [startLat, startLon] = startParam.split(',').map(Number);
+        const [endLat, endLon] = endParam.split(',').map(Number);
+        
+        if (!isNaN(startLat) && !isNaN(startLon) && !isNaN(endLat) && !isNaN(endLon)) {
+            startMarker = L.marker([startLat, startLon], { icon: greenIcon }).addTo(map);
+            startMarker.bindPopup('Start Point');
+            startInput.value = formatCoord(startLat, startLon);
+            
+            endMarker = L.marker([endLat, endLon], { icon: redIcon }).addTo(map);
+            endMarker.bindPopup('End Point');
+            endInput.value = formatCoord(endLat, endLon);
+            
+            clickState = 2;
+            calculateBtn.disabled = false;
+            
+            setTimeout(() => {
+                calculateBtn.click();
+            }, 500);
+        }
     }
 });
