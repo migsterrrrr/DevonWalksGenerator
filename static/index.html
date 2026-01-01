@@ -206,29 +206,37 @@
         <button id="share-btn" style="display: none; padding: 12px 24px; background: transparent; color: #9ca3af; border: 2px solid #4b5563; border-radius: 8px; font-weight: 500; cursor: pointer; width: 100%; transition: all 0.2s;">Share to Mobile</button>
         
         <div id="stats-dashboard" style="display: none; background: #1f2937; border: 1px solid #374151; border-radius: 12px; padding: 16px; margin-top: 16px;">
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center;">
                 <div>
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px;">
-                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #34d399;"></span>
-                        <span id="val-distance" style="font-size: 1.5rem; font-weight: 700; color: #fff;">--</span>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 4px;">
+                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #34d399;"></span>
+                        <span id="val-distance" style="font-size: 1.1rem; font-weight: 700; color: #fff;">--</span>
                     </div>
-                    <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af;">Distance</div>
+                    <div style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.3px; color: #9ca3af;">Distance</div>
                 </div>
                 <div>
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px;">
-                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #fbbf24;"></span>
-                        <span id="val-elevation" style="font-size: 1.5rem; font-weight: 700; color: #fff;">--</span>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 4px;">
+                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #fbbf24;"></span>
+                        <span id="val-elevation" style="font-size: 1.1rem; font-weight: 700; color: #fff;">--</span>
                     </div>
-                    <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af;">Elevation</div>
+                    <div style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.3px; color: #9ca3af;">Elevation</div>
                 </div>
                 <div>
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px;">
-                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #60a5fa;"></span>
-                        <span id="val-time" style="font-size: 1.5rem; font-weight: 700; color: #fff;">--</span>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 4px;">
+                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #60a5fa;"></span>
+                        <span id="val-time" style="font-size: 1.1rem; font-weight: 700; color: #fff;">--</span>
                     </div>
-                    <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af;">Est. Time</div>
+                    <div style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.3px; color: #9ca3af;">Est. Time</div>
+                </div>
+                <div>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 4px;">
+                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #a855f7;"></span>
+                        <span id="val-score" style="font-size: 1.1rem; font-weight: 700; color: #fff;">--</span>
+                    </div>
+                    <div style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.3px; color: #9ca3af;">Trail Score</div>
                 </div>
             </div>
+            <div id="score-subtitle" style="display: none; text-align: center; margin-top: 8px; font-size: 0.7rem; color: #9ca3af;"></div>
         </div>
         
         <div id="breakdown-container" class="mt-4"></div>

@@ -150,6 +150,19 @@ class RoutePlanner:
             raw_elevations = []
             cumulative_dist = 0
             
+            total_weighted_score = 0
+            crossings_count = 0
+            prev_score = None
+            
+            SURFACE_SCORES = {
+                'footway': 100, 'path': 100, 'bridleway': 100, 'track': 100,
+                'cycleway': 90,
+                'unclassified': 50, 'tertiary': 50, 'tertiary_link': 50,
+                'residential': 30, 'living_street': 30, 'service': 30,
+                'primary': 0, 'primary_link': 0, 'secondary': 0, 'secondary_link': 0, 
+                'trunk': 0, 'trunk_link': 0
+            }
+            
             for i, node in enumerate(path_nodes):
                 data = self.graph.nodes[node]
                 lat, lon = mercator_to_lat_lon(data['x'], data['y'])
@@ -181,8 +194,30 @@ class RoutePlanner:
                         segments.append(current_segment)
                     else:
                         current_segment['coords'].append(coord)
+                    
+                    base_score = SURFACE_SCORES.get(road_type, 50)
+                    
+                    ele_prev = self.graph.nodes[prev].get('elevation', 0)
+                    ele_change = abs(ele_curr - ele_prev)
+                    grade = ele_change / length if length > 0 else 0
+                    gradient_factor = 0.7 if grade >= 0.08 else 1.0
+                    
+                    if prev_score is not None:
+                        if prev_score >= 90 and base_score <= 30:
+                            crossings_count += 1
+                    
+                    segment_score = base_score * gradient_factor
+                    total_weighted_score += segment_score * length
+                    prev_score = base_score
             
             total_gain = calculate_accurate_gain(raw_elevations)
+            
+            if total_dist > 0:
+                raw_average = total_weighted_score / total_dist
+                trail_score = raw_average - (crossings_count * 5)
+                trail_score = max(0, min(100, trail_score))
+            else:
+                trail_score = 0
 
             return {
                 "success": True, 
@@ -193,7 +228,9 @@ class RoutePlanner:
                 "num_nodes": len(path_nodes),
                 "breakdown": road_stats,
                 "segments": segments,
-                "elevation_profile": elevation_profile
+                "elevation_profile": elevation_profile,
+                "trail_score": round(trail_score, 1),
+                "crossings_count": crossings_count
             }
         except nx.NetworkXNoPath:
             return {"success": False, "error": "No path found"}

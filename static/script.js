@@ -70,6 +70,8 @@ const statsDashboard = document.getElementById('stats-dashboard');
 const valDistance = document.getElementById('val-distance');
 const valElevation = document.getElementById('val-elevation');
 const valTime = document.getElementById('val-time');
+const valScore = document.getElementById('val-score');
+const scoreSubtitle = document.getElementById('score-subtitle');
 let qrCodeInstance = null;
 
 gpxBtn.addEventListener('mouseover', () => {
@@ -448,6 +450,24 @@ calculateBtn.addEventListener('click', async function() {
             valDistance.textContent = `${distanceKm} km`;
             valElevation.textContent = `+${elevationGain} m`;
             valTime.textContent = timeStr;
+            
+            const trailScore = Math.round(data.trail_score || 0);
+            const crossings = data.crossings_count || 0;
+            valScore.textContent = `${trailScore}/100`;
+            
+            let scoreLabel = '';
+            if (trailScore >= 90) scoreLabel = 'Pure Trail';
+            else if (trailScore >= 70) scoreLabel = 'Mostly Off-Road';
+            else if (trailScore >= 50) scoreLabel = 'Mixed Terrain';
+            else scoreLabel = 'Road Heavy';
+            
+            let subtitleText = scoreLabel;
+            if (crossings > 0) {
+                subtitleText += ` (${crossings} road crossing${crossings > 1 ? 's' : ''})`;
+            }
+            scoreSubtitle.textContent = subtitleText;
+            scoreSubtitle.style.display = 'block';
+            
             statsDashboard.style.display = 'block';
             
             renderBreakdown(data.breakdown, data.distance_m);
