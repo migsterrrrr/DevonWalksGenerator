@@ -409,3 +409,45 @@ calculateBtn.addEventListener('click', async function() {
         calculateBtn.textContent = 'Calculate Route';
     }
 });
+
+const resizeHandle = document.getElementById('resize-handle');
+const sidebar = document.getElementById('sidebar');
+let isResizing = false;
+
+resizeHandle.addEventListener('mouseenter', () => {
+    resizeHandle.style.background = '#4b5563';
+});
+resizeHandle.addEventListener('mouseleave', () => {
+    if (!isResizing) resizeHandle.style.background = '#2d2d4a';
+});
+
+resizeHandle.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    resizeHandle.style.background = '#6b7280';
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+});
+
+window.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    
+    const minWidth = 300;
+    const maxWidth = 600;
+    let newWidth = e.clientX;
+    
+    if (newWidth < minWidth) newWidth = minWidth;
+    if (newWidth > maxWidth) newWidth = maxWidth;
+    
+    sidebar.style.width = newWidth + 'px';
+});
+
+window.addEventListener('mouseup', () => {
+    if (isResizing) {
+        isResizing = false;
+        resizeHandle.style.background = '#2d2d4a';
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        map.invalidateSize();
+    }
+});
