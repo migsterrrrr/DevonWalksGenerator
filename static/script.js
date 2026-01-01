@@ -1,21 +1,21 @@
 const map = L.map('map').setView([50.7, -3.5], 10);
 
 const roadTypeLabels = {
-    'primary': 'Busy Road (Avoid!)',
-    'trunk': 'Busy Road (Avoid!)',
-    'secondary': 'Main Road',
+    'primary': 'A Road',
+    'trunk': 'A Road',
+    'secondary': 'B Road',
     'tertiary': 'Country Lane',
     'unclassified': 'Country Lane',
-    'residential': 'Street',
-    'service': 'Street',
-    'living_street': 'Street',
-    'footway': 'Off-Road Path',
-    'path': 'Off-Road Path',
-    'bridleway': 'Off-Road Path',
-    'track': 'Off-Road Path',
-    'cycleway': 'Off-Road Path',
-    'steps': 'Off-Road Path',
-    'pedestrian': 'Off-Road Path',
+    'residential': 'Town Lane',
+    'service': 'Town Lane',
+    'living_street': 'Town Lane',
+    'footway': 'Footpath',
+    'path': 'Footpath',
+    'bridleway': 'Footpath',
+    'track': 'Footpath',
+    'cycleway': 'Footpath',
+    'steps': 'Footpath',
+    'pedestrian': 'Footpath',
     'unknown': 'Unknown'
 };
 
