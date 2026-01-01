@@ -43,6 +43,7 @@ class RouteResponse(BaseModel):
     error: str = ""
     breakdown: Dict[str, float] = {}
     segments: List[Dict[str, Any]] = []
+    elevation_profile: List[Dict[str, float]] = []
 
 
 @app.get("/health")
@@ -72,7 +73,8 @@ async def calculate_route(request: RouteRequest):
         num_nodes=result.get("num_nodes", 0),
         error=result.get("error", ""),
         breakdown=result.get("breakdown", {}),
-        segments=result.get("segments", [])
+        segments=result.get("segments", []),
+        elevation_profile=result.get("elevation_profile", [])
     )
 
 

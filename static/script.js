@@ -54,6 +54,7 @@ let startMarker = null;
 let endMarker = null;
 let routeLayer = null;
 let clickState = 0;
+let elevationChart = null;
 
 const startInput = document.getElementById('start-input');
 const endInput = document.getElementById('end-input');
@@ -96,6 +97,103 @@ function renderBreakdown(breakdown, totalDistance) {
         `;
     }
     breakdownContainer.innerHTML = html;
+}
+
+function renderElevationChart(elevationProfile) {
+    const container = document.getElementById('elevation-container');
+    const canvas = document.getElementById('elevation-chart');
+    
+    if (!elevationProfile || elevationProfile.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    
+    if (elevationChart) {
+        elevationChart.destroy();
+    }
+    
+    const labels = elevationProfile.map(p => p.distance_km.toFixed(1));
+    const data = elevationProfile.map(p => p.elevation_m);
+    
+    const ctx = canvas.getContext('2d');
+    elevationChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                fill: true,
+                backgroundColor: 'rgba(74, 222, 128, 0.2)',
+                borderColor: '#4ade80',
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                pointHoverBackgroundColor: '#4ade80',
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 2,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 15, 35, 0.95)',
+                    padding: 10,
+                    titleColor: '#9ca3af',
+                    bodyColor: '#fff',
+                    borderColor: 'rgba(74, 222, 128, 0.5)',
+                    borderWidth: 1,
+                    displayColors: false,
+                    callbacks: {
+                        title: (items) => `${items[0].label} km`,
+                        label: (item) => `${Math.round(item.raw)} m elevation`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#6b7280',
+                        font: { size: 10 },
+                        maxTicksLimit: 6
+                    },
+                    title: {
+                        display: false
+                    }
+                },
+                y: {
+                    display: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)'
+                    },
+                    border: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#6b7280',
+                        font: { size: 10 },
+                        padding: 8,
+                        callback: (value) => `${value}m`
+                    }
+                }
+            }
+        }
+    });
 }
 
 const greenIcon = L.icon({
@@ -238,6 +336,7 @@ calculateBtn.addEventListener('click', async function() {
             setStatus(`Route found! Distance: ${distanceKm} km | Elevation: +${elevationGain} m | Est. time: ${timeStr}`, 'success');
             
             renderBreakdown(data.breakdown, data.distance_m);
+            renderElevationChart(data.elevation_profile);
         } else {
             setStatus(`Error: ${data.error}`, 'error');
         }

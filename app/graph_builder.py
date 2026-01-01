@@ -23,13 +23,13 @@ ROAD_PENALTIES = {
     'service': 1.1,
     'living_street': 1.1,
     # Unclassified/Tertiary: 1.2x
-    'unclassified': 1.2,
-    'tertiary': 1.2,
+    'unclassified': 1.6,
+    'tertiary': 1.6,
     # Secondary (B-Roads): 1.5x
-    'secondary': 1.5,
+    'secondary': 2.0,
     # Primary/Trunk (A-Roads): 2.0x
-    'primary': 2.0,
-    'trunk': 2.0,
+    'primary': 2.5,
+    'trunk': 2.5,
 }
 
 def load_graph():
