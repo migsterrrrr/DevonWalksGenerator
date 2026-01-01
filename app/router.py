@@ -53,6 +53,43 @@ def to_gpx(route_data):
     
     return '\n'.join(gpx_lines)
 
+def calculate_accurate_gain(elevations):
+    """Calculate elevation gain using smoothing and hysteresis thresholding.
+    
+    Similar to algorithms used by Strava/Garmin to filter GPS noise.
+    """
+    if len(elevations) < 3:
+        return 0.0
+    
+    THRESHOLD = 5.0
+    
+    smoothed = [elevations[0]]
+    for i in range(1, len(elevations) - 1):
+        avg = (elevations[i-1] + elevations[i] + elevations[i+1]) / 3.0
+        smoothed.append(avg)
+    smoothed.append(elevations[-1])
+    
+    total_gain = 0.0
+    current_low = smoothed[0]
+    current_high = smoothed[0]
+    
+    for point in smoothed[1:]:
+        if point > current_high:
+            current_high = point
+        elif point < current_low:
+            climb = current_high - current_low
+            if climb > THRESHOLD:
+                total_gain += climb
+            current_low = point
+            current_high = point
+    
+    final_climb = current_high - current_low
+    if final_climb > THRESHOLD:
+        total_gain += final_climb
+    
+    return total_gain
+
+
 def lat_lon_to_mercator(lat, lon):
     x = lon * 20037508.34 / 180.0
     y = math.log(math.tan((90 + lat) * math.pi / 360.0)) / (math.pi / 180.0)
@@ -96,12 +133,12 @@ class RoutePlanner:
             
             path_coords = []
             total_dist = 0
-            total_gain = 0
             total_time_s = 0
             road_stats = {}
             segments = []
             current_segment = None
             elevation_profile = []
+            raw_elevations = []
             cumulative_dist = 0
             
             for i, node in enumerate(path_nodes):
@@ -111,6 +148,7 @@ class RoutePlanner:
                 path_coords.append(coord)
                 
                 ele_curr = data.get('elevation', 0)
+                raw_elevations.append(ele_curr)
                 elevation_profile.append({
                     'distance_km': round(cumulative_dist / 1000, 3),
                     'elevation_m': round(ele_curr, 1)
@@ -134,10 +172,8 @@ class RoutePlanner:
                         segments.append(current_segment)
                     else:
                         current_segment['coords'].append(coord)
-                    
-                    ele_prev = self.graph.nodes[prev].get('elevation', 0)
-                    if ele_curr > ele_prev:
-                        total_gain += (ele_curr - ele_prev)
+            
+            total_gain = calculate_accurate_gain(raw_elevations)
 
             return {
                 "success": True, 
