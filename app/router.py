@@ -160,7 +160,8 @@ class RoutePlanner:
                 'unclassified': 50, 'tertiary': 50, 'tertiary_link': 50,
                 'residential': 30, 'living_street': 30, 'service': 30,
                 'primary': 0, 'primary_link': 0, 'secondary': 0, 'secondary_link': 0, 
-                'trunk': 0, 'trunk_link': 0
+                'trunk': 0, 'trunk_link': 0,
+                'unknown': 50
             }
             
             for i, node in enumerate(path_nodes):
@@ -184,7 +185,11 @@ class RoutePlanner:
                     total_dist += length
                     total_time_s += edge.get('weight', 0)
                     
-                    road_type = edge.get('highway', 'unknown')
+                    raw_type = edge.get('highway', 'unknown')
+                    if isinstance(raw_type, list):
+                        road_type = raw_type[0]
+                    else:
+                        road_type = str(raw_type)
                     road_stats[road_type] = road_stats.get(road_type, 0) + length
                     
                     if current_segment is None or current_segment['type'] != road_type:
