@@ -66,6 +66,10 @@ const breakdownContainer = document.getElementById('breakdown-container');
 const qrModal = document.getElementById('qr-modal');
 const qrCodeContainer = document.getElementById('qr-code');
 const closeModalBtn = document.getElementById('close-modal-btn');
+const statsDashboard = document.getElementById('stats-dashboard');
+const valDistance = document.getElementById('val-distance');
+const valElevation = document.getElementById('val-elevation');
+const valTime = document.getElementById('val-time');
 let qrCodeInstance = null;
 
 gpxBtn.addEventListener('mouseover', () => {
@@ -285,6 +289,7 @@ function clearMap() {
     calculateBtn.disabled = true;
     gpxBtn.style.display = 'none';
     shareBtn.style.display = 'none';
+    statsDashboard.style.display = 'none';
     clickState = 0;
     setStatus('Click on the map to place your starting point (green marker).', 'info');
     
@@ -438,7 +443,12 @@ calculateBtn.addEventListener('click', async function() {
             const timeStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes} min`;
             
             statusArea.innerHTML = '';
-            setStatus(`Route found! Distance: ${distanceKm} km | Elevation: +${elevationGain} m | Est. time: ${timeStr}`, 'success');
+            setStatus('Route calculated successfully!', 'success');
+            
+            valDistance.textContent = `${distanceKm} km`;
+            valElevation.textContent = `+${elevationGain} m`;
+            valTime.textContent = timeStr;
+            statsDashboard.style.display = 'block';
             
             renderBreakdown(data.breakdown, data.distance_m);
             renderElevationChart(data.elevation_profile);
