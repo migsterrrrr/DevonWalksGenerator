@@ -77,21 +77,25 @@ function renderBreakdown(breakdown, totalDistance) {
     
     const sorted = Object.entries(aggregated).sort((a, b) => b[1].distance - a[1].distance);
     
+    let html = '';
     for (const [label, data] of sorted) {
         const percent = (data.distance / totalDistance) * 100;
-        const distanceKm = (data.distance / 1000).toFixed(1);
+        const dist = data.distance;
+        const type = data.type;
         
-        const item = document.createElement('div');
-        item.className = 'breakdown-item';
-        item.innerHTML = `
-            <div class="breakdown-label">
-                <span>${label}</span>
-                <span>${distanceKm} km</span>
+        html += `
+            <div style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 4px;">
+                    <span>${label}</span>
+                    <span style="color: #9ca3af;">${(dist/1000).toFixed(1)} km</span>
+                </div>
+                <div style="width: 100%; background-color: #374151; border-radius: 9999px; height: 12px;">
+                    <div style="height: 12px; border-radius: 9999px; width: ${percent}%; background-color: ${COLOR_MAP[type] || '#3b82f6'}"></div>
+                </div>
             </div>
-            <div class="h-2 rounded-full" style="width: ${percent}%; background-color: ${COLOR_MAP[data.type] || '#3b82f6'}"></div>
         `;
-        breakdownContainer.appendChild(item);
     }
+    breakdownContainer.innerHTML = html;
 }
 
 const greenIcon = L.icon({
