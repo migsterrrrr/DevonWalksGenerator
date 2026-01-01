@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["gdal", "geos", "libxcrypt", "osm2pgsql", "postgresql", "postgresqlPackages.postgis", "postgresql_14", "proj"]
+packages = ["gdal", "geos", "libxcrypt", "osm2pgsql", "pkg-config", "postgresql", "postgresqlPackages.postgis", "postgresql_14", "proj", "xsimd"]
 
 [workflows]
 runButton = "Project"
