@@ -44,7 +44,10 @@ Using Replit's managed PostgreSQL with PostGIS extension.
 - `GET /health` - Health check
 - `POST /api/route` - Calculate walking route
   - Request: `{"start": [lat, lon], "end": [lat, lon]}`
-  - Response: `{"success": true, "path": [[lat, lon], ...], "distance_m": 1234.5}`
+  - Response: `{"success": true, "path": [[lat, lon], ...], "distance_m": 1234.5, "segments": [...], "elevation_profile": [...]}`
+- `POST /download_gpx` - Download route as GPX file
+  - Request: `{"start": [lat, lon], "end": [lat, lon]}`
+  - Response: GPX XML file (application/gpx+xml)
 
 ## Commands
 - `bash init_db.sh` - Re-import OSM data
