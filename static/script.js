@@ -34,9 +34,9 @@ const COLOR_MAP = {
     'secondary': '#ef4444',
     'tertiary': '#eab308',
     'unclassified': '#eab308',
-    'residential': '#f97316',
-    'service': '#f97316',
-    'living_street': '#f97316',
+    'residential': '#84cc16',
+    'service': '#84cc16',
+    'living_street': '#84cc16',
     'footway': '#10b981',
     'path': '#10b981',
     'bridleway': '#10b981',
@@ -69,15 +69,17 @@ function renderBreakdown(breakdown, totalDistance) {
     const aggregated = {};
     for (const [osmType, distance] of Object.entries(breakdown)) {
         const label = roadTypeLabels[osmType] || 'Unknown';
-        aggregated[label] = (aggregated[label] || 0) + distance;
+        if (!aggregated[label]) {
+            aggregated[label] = { distance: 0, type: osmType };
+        }
+        aggregated[label].distance += distance;
     }
     
-    const sorted = Object.entries(aggregated).sort((a, b) => b[1] - a[1]);
+    const sorted = Object.entries(aggregated).sort((a, b) => b[1].distance - a[1].distance);
     
-    for (const [label, distance] of sorted) {
-        const percentage = (distance / totalDistance) * 100;
-        const distanceKm = (distance / 1000).toFixed(1);
-        const color = roadTypeColors[label] || '#6b7280';
+    for (const [label, data] of sorted) {
+        const percent = (data.distance / totalDistance) * 100;
+        const distanceKm = (data.distance / 1000).toFixed(1);
         
         const item = document.createElement('div');
         item.className = 'breakdown-item';
@@ -86,7 +88,7 @@ function renderBreakdown(breakdown, totalDistance) {
                 <span>${label}</span>
                 <span>${distanceKm} km</span>
             </div>
-            <div class="breakdown-bar" style="width: ${percentage}%; background: ${color};"></div>
+            <div class="h-2 rounded-full" style="width: ${percent}%; background-color: ${COLOR_MAP[data.type] || '#3b82f6'}"></div>
         `;
         breakdownContainer.appendChild(item);
     }
