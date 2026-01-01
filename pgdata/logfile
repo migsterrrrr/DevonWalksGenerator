@@ -1,0 +1,11 @@
+2026-01-01 14:45:15.412 UTC [851] LOG:  starting PostgreSQL 14.18 on x86_64-pc-linux-gnu, compiled by clang version 19.1.7, 64-bit
+2026-01-01 14:45:15.414 UTC [851] LOG:  listening on IPv6 address "::1", port 5432
+2026-01-01 14:45:15.416 UTC [851] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2026-01-01 14:45:15.424 UTC [851] LOG:  listening on Unix socket "/tmp/.s.PGSQL.5432"
+2026-01-01 14:45:15.432 UTC [852] LOG:  database system was shut down at 2026-01-01 14:45:13 UTC
+2026-01-01 14:45:15.489 UTC [851] LOG:  database system is ready to accept connections
+2026-01-01 14:45:15.590 UTC [860] FATAL:  database "devon_walking" does not exist
+2026-01-01 14:45:15.753 UTC [863] ERROR:  role "runner" already exists
+2026-01-01 14:45:15.753 UTC [863] STATEMENT:  CREATE USER runner WITH SUPERUSER;
+2026-01-01 14:45:16.792 UTC [867] ERROR:  could not open extension control file "/nix/store/ibw15v5gy440pip24c2gxa2dpm0mdwfm-postgresql-14.18/share/postgresql/extension/postgis.control": No such file or directory
+2026-01-01 14:45:16.792 UTC [867] STATEMENT:  CREATE EXTENSION IF NOT EXISTS postgis;

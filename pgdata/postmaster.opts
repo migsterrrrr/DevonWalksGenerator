@@ -1,0 +1,1 @@
+/nix/store/ibw15v5gy440pip24c2gxa2dpm0mdwfm-postgresql-14.18/bin/postgres "-D" "./pgdata" "-p" "5432" "-k" "/tmp"
