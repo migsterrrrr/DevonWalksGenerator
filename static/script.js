@@ -28,6 +28,24 @@ const roadTypeColors = {
     'Unknown': '#6b7280'
 };
 
+const COLOR_MAP = {
+    'primary': '#ef4444',
+    'trunk': '#ef4444',
+    'secondary': '#ef4444',
+    'tertiary': '#eab308',
+    'unclassified': '#eab308',
+    'residential': '#f97316',
+    'service': '#f97316',
+    'living_street': '#f97316',
+    'footway': '#10b981',
+    'path': '#10b981',
+    'bridleway': '#10b981',
+    'track': '#10b981',
+    'steps': '#10b981',
+    'cycleway': '#10b981',
+    'pedestrian': '#10b981'
+};
+
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
@@ -176,14 +194,30 @@ calculateBtn.addEventListener('click', async function() {
         const data = await response.json();
         
         if (data.success) {
-            const coordinates = data.path.map(coord => [coord[0], coord[1]]);
+            routeLayer = L.featureGroup();
             
-            routeLayer = L.polyline(coordinates, {
-                color: '#3b82f6',
-                weight: 5,
-                opacity: 0.8
-            }).addTo(map);
+            if (data.segments && data.segments.length > 0) {
+                for (const segment of data.segments) {
+                    const coords = segment.coords.map(c => [c[0], c[1]]);
+                    const color = COLOR_MAP[segment.type] || '#3b82f6';
+                    const polyline = L.polyline(coords, {
+                        color: color,
+                        weight: 5,
+                        opacity: 0.9
+                    });
+                    routeLayer.addLayer(polyline);
+                }
+            } else {
+                const coordinates = data.path.map(coord => [coord[0], coord[1]]);
+                const polyline = L.polyline(coordinates, {
+                    color: '#3b82f6',
+                    weight: 5,
+                    opacity: 0.8
+                });
+                routeLayer.addLayer(polyline);
+            }
             
+            routeLayer.addTo(map);
             map.fitBounds(routeLayer.getBounds(), { padding: [50, 50] });
             
             const distanceKm = (data.distance_m / 1000).toFixed(2);

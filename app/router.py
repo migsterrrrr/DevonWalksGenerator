@@ -49,11 +49,14 @@ class RoutePlanner:
             total_gain = 0
             total_time_s = 0
             road_stats = {}
+            segments = []
+            current_segment = None
             
             for i, node in enumerate(path_nodes):
                 data = self.graph.nodes[node]
                 lat, lon = mercator_to_lat_lon(data['x'], data['y'])
-                path_coords.append([lat, lon])
+                coord = [lat, lon]
+                path_coords.append(coord)
                 
                 if i > 0:
                     prev = path_nodes[i-1]
@@ -64,6 +67,14 @@ class RoutePlanner:
                     
                     road_type = edge.get('highway', 'unknown')
                     road_stats[road_type] = road_stats.get(road_type, 0) + length
+                    
+                    if current_segment is None or current_segment['type'] != road_type:
+                        if current_segment is not None:
+                            current_segment['coords'].append(coord)
+                        current_segment = {'coords': [path_coords[i-1], coord], 'type': road_type}
+                        segments.append(current_segment)
+                    else:
+                        current_segment['coords'].append(coord)
                     
                     ele_curr = data.get('elevation', 0)
                     ele_prev = self.graph.nodes[prev].get('elevation', 0)
@@ -77,7 +88,8 @@ class RoutePlanner:
                 "elevation_gain": round(total_gain, 1),
                 "total_time_s": round(total_time_s, 1),
                 "num_nodes": len(path_nodes),
-                "breakdown": road_stats
+                "breakdown": road_stats,
+                "segments": segments
             }
         except nx.NetworkXNoPath:
             return {"success": False, "error": "No path found"}

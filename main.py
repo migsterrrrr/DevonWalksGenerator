@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Any
 from contextlib import asynccontextmanager
 
 from app.router import RoutePlanner
@@ -42,6 +42,7 @@ class RouteResponse(BaseModel):
     num_nodes: int = 0
     error: str = ""
     breakdown: Dict[str, float] = {}
+    segments: List[Dict[str, Any]] = []
 
 
 @app.get("/health")
@@ -70,7 +71,8 @@ async def calculate_route(request: RouteRequest):
         total_time_s=result.get("total_time_s", 0),
         num_nodes=result.get("num_nodes", 0),
         error=result.get("error", ""),
-        breakdown=result.get("breakdown", {})
+        breakdown=result.get("breakdown", {}),
+        segments=result.get("segments", [])
     )
 
 
